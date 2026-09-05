@@ -61,6 +61,7 @@ app.listen(PORT, () => {
   console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
   console.log(`🤖 Agent Chat:   http://localhost:${PORT}/api/agents/chat`);
   console.log(`📊 Admin BI:     http://localhost:${PORT}/api/admin/metrics`);
+  console.log(`🧠 AI Engine:    http://localhost:${PORT}/api/agents/provider-status`);
   console.log(`=======================================================`);
 });
 
