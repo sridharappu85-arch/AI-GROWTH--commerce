@@ -151,5 +151,4 @@ In the top navigation bar, use the **Persona Switcher** to instantly test the pl
    - Open **AI Growth Insights** (`/admin/insights`) to inspect signals and click *"Deploy Action"*.
    - Open **Campaign Studio** (`/admin/campaigns`) and click *"Generate Campaign with AI"* to view real-time copy synthesis.
    - Open **Agent Activity** (`/admin/agents`) to inspect the real-time observability telemetry log.
-#   A I - G R O W T H - - c o m m e r c e  
- 
+#
