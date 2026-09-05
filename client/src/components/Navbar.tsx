@@ -16,7 +16,8 @@ import {
   Package, 
   Users,
   Menu,
-  X
+  X,
+  KeyRound
 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useCart } from '../contexts/CartContext';
