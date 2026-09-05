@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id          String           @id @default(cuid())
+  email       String           @unique
+  name        String
+  role        String           @default("CUSTOMER") // "CUSTOMER" | "ADMIN"
+  avatar      String?
+  phone       String?
+  profile     CustomerProfile?
+  carts       Cart[]
+  orders      Order[]
+  wishlists   Wishlist[]
+  reviews     Review[]
+  agentLogs   AgentLog[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model CustomerProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  budgetMax           Float?
+  preferredCategories String   @default("[]") // JSON string array
+  techProficiency     String   @default("Intermediate")
+  preferredBrands     String   @default("[]") // JSON string array
+  location            String?  @default("Bengaluru, India")
+  personaTag          String?  @default("Tech Enthusiast")
+  updatedAt           DateTime @updatedAt
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  title         String
+  slug          String      @unique
+  description   String
+  category      String
+  brand         String
+  price         Float       // In INR (₹)
+  originalPrice Float?
+  rating        Float       @default(4.5)
+  reviewCount   Int         @default(0)
+  inStock       Boolean     @default(true)
+  stockCount    Int         @default(25)
+  specs         String      @default("{}") // JSON key-value
+  features      String      @default("[]") // JSON string array
+  tags          String      @default("[]") // JSON string array
+  imageUrl      String
+  isFeatured    Boolean     @default(false)
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  wishlists     Wishlist[]
+  reviews       Review[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id                         String   @id @default(cuid())
+  cartId                     String
+  cart                       Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId                  String
+  product                    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity                   Int      @default(1)
+  addedByAgent               Boolean  @default(false)
+  agentRecommendationReason  String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalAmount     Float
+  discountAmount  Float       @default(0)
+  taxAmount       Float       @default(0)
+  finalAmount     Float
+  status          String      @default("CONFIRMED") // "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED"
+  paymentMethod   String      @default("Simulated Pay")
+  shippingAddress String
+  isAiAssisted    Boolean     @default(false)
+  agentSummary    String?
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity  Int      @default(1)
+  price     Float
+  title     String
+  imageUrl  String
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model CustomerSegment {
+  id                 String   @id @default(cuid())
+  name               String
+  key                String   @unique
+  description        String
+  customerCount      Int      @default(0)
+  avgAOV             Float    @default(0)
+  avgCLV             Float    @default(0)
+  churnRisk          String   @default("LOW") // "LOW" | "MEDIUM" | "HIGH"
+  characteristics    String   @default("[]") // JSON string array
+  recommendedActions String   @default("[]") // JSON string array
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model GrowthInsight {
+  id                   String   @id @default(cuid())
+  type                 String   // "OPPORTUNITY" | "RISK" | "CONVERSION" | "MARKETING" | "RETENTION"
+  title                String
+  explanation          String
+  impactLevel          String   @default("HIGH") // "CRITICAL" | "HIGH" | "MEDIUM"
+  recommendedAction    String
+  estimatedImpactValue String
+  metricHighlight      String?
+  status               String   @default("ACTIVE") // "ACTIVE" | "IMPLEMENTED" | "DISMISSED"
+  createdAt            DateTime @default(now())
+}
+
+model MarketingCampaign {
+  id                  String   @id @default(cuid())
+  name                String
+  targetSegmentId     String?
+  status              String   @default("ACTIVE") // "ACTIVE" | "DRAFT" | "COMPLETED"
+  channel             String   @default("EMAIL") // "EMAIL" | "WHATSAPP" | "PUSH" | "ADS"
+  generatedHeadline   String
+  generatedCopy       String
+  cta                 String
+  predictedConversion Float    @default(4.5)
+  budget              Float    @default(15000)
+  revenueGenerated    Float    @default(0)
+  createdAt           DateTime @default(now())
+}
+
+model AgentLog {
+  id              String   @id @default(cuid())
+  agentName       String   // "ShoppingAgent" | "GrowthAgent" | "RecommendationAgent" | "MarketingAgent"
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userQuery       String
+  toolInvoked     String?
+  inputParams     String?  // JSON string
+  outputSummary   String
+  reasoningChain  String?  // JSON string array of steps
+  executionTimeMs Int?     @default(120)
+  success         Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}

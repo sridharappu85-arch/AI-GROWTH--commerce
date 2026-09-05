@@ -1,0 +1,59 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+  :root {
+    --bg-primary: #0a0d14;
+    --bg-card: rgba(18, 24, 38, 0.7);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+  }
+
+  body {
+    @apply bg-[#080b11] text-slate-100 antialiased selection:bg-indigo-500 selection:text-white font-sans;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom glowing effects and glassmorphic cards */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-panel-hover:hover {
+  background: rgba(20, 30, 55, 0.85);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.2);
+  transform: translateY(-2px);
+}
+
+.glow-pill {
+  box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.4);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.35);
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7);
+}
