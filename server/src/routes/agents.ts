@@ -1,8 +1,43 @@
 import { Router } from 'express';
 import prisma from '../db';
 import { AgentOrchestrator } from '../agents/AgentOrchestrator';
+import { OpenAIService, setOpenAIKey } from '../agents/OpenAIService';
 
 const router = Router();
+
+// Check active AI provider status
+router.get('/provider-status', (req, res) => {
+  const isAvailable = OpenAIService.isAvailable();
+  res.json({
+    provider: isAvailable ? 'OpenAI GPT-4o-mini' : 'Deterministic Vector & Rule Engine',
+    hasOpenAIKey: isAvailable,
+    status: 'ONLINE',
+    capabilities: [
+      'Natural Language Budget & Category Extraction',
+      'Autonomous Multi-Product Comparison Matrix',
+      'Dynamic AI Cart Discounts & Direct Ordering',
+      'Live Marketing Campaign Copy Generation',
+      'Diagnostic Growth Insights Engine'
+    ]
+  });
+});
+
+// Update or set OpenAI API key dynamically
+router.post('/set-key', (req, res) => {
+  try {
+    const { apiKey } = req.body;
+    if (!apiKey || typeof apiKey !== 'string') {
+      return res.status(400).json({ error: 'Valid apiKey string is required' });
+    }
+    setOpenAIKey(apiKey);
+    res.json({
+      success: true,
+      message: 'OpenAI API key configured successfully. GPT-4o-mini is now active for all multi-agent workflows.'
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to configure API key' });
+  }
+});
 
 const getUserId = async (req: any) => {
   const headerId = req.headers['x-user-id'] as string;

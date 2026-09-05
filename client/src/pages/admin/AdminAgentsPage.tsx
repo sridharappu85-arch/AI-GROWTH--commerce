@@ -18,6 +18,12 @@ export const AdminAgentsPage: React.FC = () => {
   const [logs, setLogs] = useState<AgentLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedLog, setExpandedLog] = useState<Record<string, boolean>>({});
+  
+  // Provider status & Key configuration
+  const [providerStatus, setProviderStatus] = useState<any>(null);
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [isSettingKey, setIsSettingKey] = useState(false);
+  const [keyMessage, setKeyMessage] = useState<string | null>(null);
 
   const fetchLogs = async () => {
     try {
@@ -31,9 +37,40 @@ export const AdminAgentsPage: React.FC = () => {
     }
   };
 
+  const fetchProviderStatus = async () => {
+    try {
+      const status = await apiRequest('/agents/provider-status');
+      setProviderStatus(status);
+    } catch (e) {
+      console.error('Failed to fetch provider status', e);
+    }
+  };
+
   useEffect(() => {
     fetchLogs();
+    fetchProviderStatus();
   }, []);
+
+  const handleSaveApiKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!apiKeyInput.trim()) return;
+
+    try {
+      setIsSettingKey(true);
+      setKeyMessage(null);
+      const res = await apiRequest('/agents/set-key', {
+        method: 'POST',
+        body: JSON.stringify({ apiKey: apiKeyInput.trim() })
+      });
+      setKeyMessage(res.message || 'Key saved successfully');
+      setApiKeyInput('');
+      fetchProviderStatus();
+    } catch (err: any) {
+      setKeyMessage(err.message || 'Failed to save API key');
+    } finally {
+      setIsSettingKey(false);
+    }
+  };
 
   const getAgentBadge = (agent: string) => {
     switch (agent) {
@@ -92,6 +129,69 @@ export const AdminAgentsPage: React.FC = () => {
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Refresh Logs</span>
         </button>
+      </div>
+
+      {/* AI Engine & OpenAI Configuration Card */}
+      <div className="glass-panel p-6 rounded-3xl border border-indigo-500/20 bg-gradient-to-r from-indigo-950/40 via-slate-900/60 to-cyan-950/40 shadow-xl space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-white">Active AI Engine Architecture</h3>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  providerStatus?.hasOpenAIKey 
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                    : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                }`}>
+                  {providerStatus?.provider || 'Deterministic & Neural Hybrid'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400">
+                {providerStatus?.hasOpenAIKey 
+                  ? '⚡ OpenAI GPT-4o-mini is active for natural reasoning, campaign generation & intent discovery.' 
+                  : '🛡️ Running on built-in Deterministic Vector Scoring engine (Zero API cost & 100% offline capable).'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-mono text-emerald-400 font-semibold">Engine Status: HEALTHY</span>
+          </div>
+        </div>
+
+        {/* API Key Form */}
+        <form onSubmit={handleSaveApiKey} className="pt-2 flex flex-col sm:flex-row items-center gap-3 border-t border-white/5">
+          <div className="flex-1 w-full relative">
+            <input
+              type="password"
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+              placeholder="Paste OpenAI API Key (sk-...)"
+              className="w-full pl-4 pr-4 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:border-indigo-500 transition"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isSettingKey || !apiKeyInput.trim()}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:brightness-110 disabled:opacity-50 text-white text-xs font-semibold shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{isSettingKey ? 'Connecting...' : 'Set / Update OpenAI Key'}</span>
+          </button>
+        </form>
+
+        {keyMessage && (
+          <div className="p-2.5 rounded-xl bg-indigo-950/50 border border-indigo-500/30 text-xs text-cyan-300 font-mono">
+            {keyMessage}
+          </div>
+        )}
       </div>
 
       {loading ? (

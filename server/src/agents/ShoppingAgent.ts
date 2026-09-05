@@ -1,4 +1,5 @@
 import { AgentTools } from './AgentTools';
+import { OpenAIService } from './OpenAIService';
 import prisma from '../db';
 
 export interface AgentResponse {
@@ -219,12 +220,35 @@ export class ShoppingAgent {
       };
     });
 
-    // Formulate final conversational reply
+    // Formulate final conversational reply (Hybrid OpenAI / Deterministic)
     let reply = '';
-    if (enrichedProducts.length > 0) {
-      reply = `I analyzed your request${extractedBudget ? ` for options under **₹${extractedBudget.toLocaleString('en-IN')}**` : ''}${detectedCategory ? ` in **${detectedCategory}**` : ''}. Here are the top **${enrichedProducts.length} curated recommendations** ranked for performance, reliability, and value:`;
-    } else {
-      reply = `I searched our catalog but couldn't find exact matches for those criteria. Here are our most versatile, top-rated products:`;
+    if (OpenAIService.isAvailable() && enrichedProducts.length > 0) {
+      reasoningSteps.push(`[OpenAI Bridge] Invoking GPT-4o-mini for natural conversational synthesis grounded in verified catalogue results.`);
+      const aiResult = await OpenAIService.generateAgentResponse({
+        systemPrompt: `You are an expert, proactive AI Shopping Assistant for NexAgentic Commerce. Synthesize a warm, concise 2-3 sentence markdown response explaining why these ${enrichedProducts.length} items fit the shopper's criteria (${userPersona} persona, ₹${extractedBudget || 'flexible'} budget, ${detectedCategory || 'general'}). Highlight key differentiator specs. Output valid JSON: { "reply": string, "reasoningSteps": string[] }`,
+        userQuery: query,
+        contextJson: JSON.stringify({
+          userPersona,
+          extractedBudget,
+          detectedCategory,
+          products: enrichedProducts.map(p => ({ title: p.title, price: p.price, brand: p.brand, rating: p.rating, specs: p.specs }))
+        })
+      });
+
+      if (aiResult) {
+        reply = aiResult.reply;
+        if (aiResult.reasoning) {
+          reasoningSteps.push(...aiResult.reasoning);
+        }
+      }
+    }
+
+    if (!reply) {
+      if (enrichedProducts.length > 0) {
+        reply = `I analyzed your request${extractedBudget ? ` for options under **₹${extractedBudget.toLocaleString('en-IN')}**` : ''}${detectedCategory ? ` in **${detectedCategory}**` : ''}. Here are the top **${enrichedProducts.length} curated recommendations** ranked for performance, reliability, and value:`;
+      } else {
+        reply = `I searched our catalog but couldn't find exact matches for those criteria. Here are our most versatile, top-rated products:`;
+      }
     }
 
     const executionTime = Date.now() - startTime;
