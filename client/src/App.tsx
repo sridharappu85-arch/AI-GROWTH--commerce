@@ -8,6 +8,7 @@ import { Footer } from './components/Footer';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
+import { LoginPage } from './pages/LoginPage';
 import { AssistantPage } from './pages/AssistantPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
@@ -39,6 +40,7 @@ export const App: React.FC = () => {
                 <Routes>
                   {/* Public & Customer Routes */}
                   <Route path="/" element={<LandingPage />} />
+                  <Route path="/login" element={<LoginPage />} />
                   <Route path="/assistant" element={<AssistantPage />} />
                   <Route path="/products" element={<ProductsPage />} />
                   <Route path="/products/:id" element={<ProductDetailPage />} />

@@ -8,6 +8,9 @@ interface UserContextType {
   loading: boolean;
   switchUser: (userId: string) => Promise<void>;
   switchRole: (role: 'CUSTOMER' | 'ADMIN') => Promise<void>;
+  login: (credentials: { email?: string; userId?: string }) => Promise<{ success: boolean; message?: string }>;
+  register: (payload: any) => Promise<{ success: boolean; message?: string }>;
+  logout: () => void;
   refreshUser: () => Promise<void>;
 }
 
@@ -61,6 +64,54 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const login = async (credentials: { email?: string; userId?: string }) => {
+    try {
+      const res = await apiRequest<{ success: boolean; message: string; user: User }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials)
+      });
+      if (res.user) {
+        localStorage.setItem('nex_active_user_id', res.user.id);
+        setCurrentUser(res.user);
+        return { success: true, message: res.message };
+      }
+      return { success: false, message: 'Invalid credentials' };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Login failed' };
+    }
+  };
+
+  const register = async (payload: any) => {
+    try {
+      const res = await apiRequest<{ success: boolean; message: string; user: User }>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      if (res.user) {
+        localStorage.setItem('nex_active_user_id', res.user.id);
+        setCurrentUser(res.user);
+        // Refresh users list
+        const allUsers = await apiRequest<User[]>('/auth/users');
+        setUsers(allUsers);
+        return { success: true, message: res.message };
+      }
+      return { success: false, message: 'Registration failed' };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Registration failed' };
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('nex_active_user_id');
+    const guestUser = users.find(u => u.role === 'CUSTOMER') || users[0];
+    if (guestUser) {
+      localStorage.setItem('nex_active_user_id', guestUser.id);
+      setCurrentUser(guestUser);
+    } else {
+      setCurrentUser(null);
+    }
+  };
+
   const refreshUser = async () => {
     try {
       const me = await apiRequest<User>('/auth/me');
@@ -78,6 +129,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         switchUser,
         switchRole,
+        login,
+        register,
+        logout,
         refreshUser
       }}
     >

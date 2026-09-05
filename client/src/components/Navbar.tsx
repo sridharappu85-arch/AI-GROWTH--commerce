@@ -184,6 +184,16 @@ export const Navbar: React.FC = () => {
               </>
             )}
 
+            {/* Sign In / Agent Portal Button */}
+            <Link
+              to="/login"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold transition hover:border-cyan-400/50 hover:text-cyan-300"
+              title="Open AI Authentication Portal"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Login</span>
+            </Link>
+
             {/* Persona Switcher Dropdown */}
             <div className="relative">
               <button
@@ -209,9 +219,18 @@ export const Navbar: React.FC = () => {
               {/* Dropdown Menu */}
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-72 rounded-xl bg-[#0f172a] border border-white/10 shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="px-3 py-2 border-b border-white/10">
-                    <p className="text-xs font-semibold text-slate-300">Switch Demo Persona</p>
-                    <p className="text-[11px] text-slate-400">Instantly test persona-driven recommendations</p>
+                  <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold text-slate-300">Active Persona</p>
+                      <p className="text-[11px] text-slate-400">Fast switch or full login portal</p>
+                    </div>
+                    <Link
+                      to="/login"
+                      onClick={() => setDropdownOpen(false)}
+                      className="text-[10px] px-2 py-1 rounded bg-indigo-600/30 hover:bg-indigo-600/60 text-cyan-300 border border-indigo-500/30 font-semibold"
+                    >
+                      Login Portal ⚡
+                    </Link>
                   </div>
 
                   <div className="py-1 max-h-64 overflow-y-auto">
